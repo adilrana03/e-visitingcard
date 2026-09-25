@@ -2,9 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#12100e" />
   <meta name="description" content="Digital visiting card for Adil Rana, Founder & CEO of Rana Tech — software, AI and digital product development." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta property="og:title" content="Adil Rana — Rana Tech" />
+  <meta property="og:description" content="Founder & CEO · Software · AI · Innovation. Tap to flip, scan to save." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://adilrana03.in" />
   <title>Adil Rana — Rana Tech</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,12 +29,21 @@
       --line: rgba(215, 189, 145, .28);
       --cyan: #8eeeff;
       --violet: #b7a4ff;
-      --card-w: min(94vw, 760px);
+      --card-w: min(calc(100vw - 32px), 760px);
       --card-ratio: 0.61;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+      --touch: 44px;
     }
 
     * { box-sizing: border-box; }
-    html { min-height: 100%; }
+    html {
+      min-height: 100%;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
     body {
       margin: 0;
       min-height: 100dvh;
@@ -39,6 +54,7 @@
         radial-gradient(ellipse 36% 30% at 84% 82%, rgba(71, 53, 28, .24), transparent 60%),
         linear-gradient(145deg, #19150f 0%, #0d0c0a 58%, #15120f 100%);
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body::before {
@@ -59,17 +75,21 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 18px;
-      padding: 32px 16px 44px;
+      gap: clamp(14px, 3vw, 18px);
+      padding:
+        calc(20px + var(--safe-top))
+        calc(16px + var(--safe-right))
+        calc(120px + var(--safe-bottom))
+        calc(16px + var(--safe-left));
       perspective: 1600px;
     }
 
     .topbar {
-      width: min(94vw, 760px);
+      width: var(--card-w);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 12px;
       opacity: 0;
       animation: rise .8s ease .05s forwards;
     }
@@ -110,8 +130,14 @@
       transition: transform .88s cubic-bezier(.22,1,.36,1);
       cursor: pointer;
       outline: none;
+      touch-action: pan-y;
+    }
+    .card:focus-visible {
+      box-shadow: 0 0 0 3px rgba(142, 238, 255, .45), 0 30px 80px rgba(0,0,0,.48);
+      border-radius: 24px;
     }
     .card.is-flipped { transform: rotateY(180deg); }
+    .card.is-dragging { transition: none; }
 
     .face {
       position: absolute;
@@ -135,8 +161,48 @@
     .front {
       color: var(--ink);
       background:
-        radial-gradient(circle at 88% 18%, rgba(255,255,255,.82), transparent 28%),
-        linear-gradient(150deg, #fbf8f2 0%, #efe7da 62%, #e8dece 100%);
+        radial-gradient(circle at 92% 8%, rgba(255,255,255,.9), transparent 32%),
+        radial-gradient(circle at 8% 88%, rgba(167,132,80,.12), transparent 34%),
+        linear-gradient(152deg, #fcf9f4 0%, #f3ebdf 55%, #e8dece 100%);
+    }
+    .front::before {
+      content: "RT";
+      position: absolute;
+      right: -8px;
+      bottom: -28px;
+      font-family: "Instrument Serif", serif;
+      font-size: clamp(140px, 28vw, 220px);
+      line-height: 1;
+      letter-spacing: -.06em;
+      color: rgba(115, 90, 57, .07);
+      pointer-events: none;
+      user-select: none;
+    }
+    .front-accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 72px;
+      height: 72px;
+      pointer-events: none;
+    }
+    .front-accent::before,
+    .front-accent::after {
+      content: "";
+      position: absolute;
+      background: linear-gradient(90deg, var(--bronze), rgba(167,132,80,.2));
+    }
+    .front-accent::before {
+      top: 28px;
+      left: 28px;
+      width: 34px;
+      height: 1px;
+    }
+    .front-accent::after {
+      top: 28px;
+      left: 28px;
+      width: 1px;
+      height: 34px;
     }
 
     .back {
@@ -149,6 +215,10 @@
     }
 
     .grid { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; }
+    .front .grid { justify-content: space-between; }
+    @media (min-width: 741px) {
+      .front-body { margin-top: auto; }
+    }
     .row { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 
     .brand {
@@ -176,74 +246,103 @@
     }
     .back .mark { color: var(--cream); border-color: rgba(215,189,145,.55); }
 
-    .front-body { margin-top: auto; }
+    .front-body {
+      padding-top: clamp(18px, 4vw, 34px);
+    }
+    .front-label {
+      margin: 0 0 10px;
+      color: var(--bronze);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .28em;
+      text-transform: uppercase;
+    }
     .name {
       margin: 0;
       font-family: "Instrument Serif", serif;
       font-weight: 400;
-      font-size: clamp(48px, 9vw, 86px);
-      line-height: .86;
-      letter-spacing: -.04em;
+      font-size: clamp(52px, 10vw, 92px);
+      line-height: .88;
+      letter-spacing: -.045em;
     }
-    .name em { font-style: italic; color: #735a39; }
+    .name em {
+      display: block;
+      font-style: italic;
+      color: #735a39;
+      margin-top: .02em;
+    }
 
-    .rule {
-      width: 92px;
-      height: 1px;
-      margin: 20px 0 15px;
-      background: linear-gradient(90deg, var(--bronze), transparent);
-    }
-    .role {
-      margin: 0;
-      color: #5d5449;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-    }
     .company {
-      margin: 6px 0 0;
+      margin: 14px 0 0;
+      max-width: 18ch;
       font-family: "Instrument Serif", serif;
       font-style: italic;
-      color: #352e26;
-      font-size: 22px;
+      color: #4a4035;
+      font-size: clamp(20px, 3.2vw, 26px);
+      line-height: 1.15;
     }
 
-    .front-bottom {
+    .front-tags {
       display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 24px;
-      margin-top: 34px;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 22px;
     }
-    .promise {
-      max-width: 350px;
-      margin: 0;
-      color: #756b5e;
-      font-size: 12px;
-      line-height: 1.55;
-      letter-spacing: .05em;
-    }
-    .ai-badge {
-      position: relative;
+    .front-tag {
       display: inline-flex;
       align-items: center;
-      gap: 9px;
-      border: 1px solid rgba(43,37,30,.22);
+      gap: 7px;
+      padding: 8px 12px;
       border-radius: 999px;
-      padding: 10px 14px;
-      background: rgba(255,255,255,.34);
-      color: #4e4539;
+      border: 1px solid rgba(115, 90, 57, .18);
+      background: rgba(255,255,255,.42);
+      color: #5a5045;
       font-size: 10px;
-      font-weight: 700;
-      letter-spacing: .18em;
+      font-weight: 600;
+      letter-spacing: .14em;
       text-transform: uppercase;
-      white-space: nowrap;
     }
-    .ai-badge::before {
-      content: "✦";
-      color: var(--bronze);
+    .front-tag::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 999px;
+      background: var(--bronze);
+      box-shadow: 0 0 10px rgba(167,132,80,.35);
+    }
+
+    .front-footer {
+      display: grid;
+      gap: 12px;
+      margin-top: clamp(24px, 4vw, 36px);
+      padding-top: 16px;
+      border-top: 1px solid rgba(115, 90, 57, .16);
+    }
+    .front-contact {
+      display: grid;
+      gap: 8px;
+    }
+    .front-link {
+      color: #3f372f;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-decoration: none;
+      transition: color .2s ease;
+    }
+    .front-link:hover,
+    .front-link:active { color: var(--bronze); }
+    .front-link--site {
+      text-transform: lowercase;
+      letter-spacing: .08em;
+    }
+    .front-link--phone {
       font-size: 13px;
+      letter-spacing: .04em;
+    }
+    .front-link--email {
+      font-size: 12px;
+      overflow-wrap: anywhere;
     }
 
     .back-layout {
@@ -348,13 +447,17 @@
       text-decoration: none;
       color: #ede8df;
       font-size: 12px;
-      transition: color .2s ease, transform .2s ease;
+      min-height: var(--touch);
+      padding: 8px 0;
+      transition: color .2s ease, transform .2s ease, background .2s ease;
       overflow-wrap: anywhere;
+      border-radius: 12px;
     }
-    .contact:hover { color: var(--cyan); transform: translateX(-2px); }
+    .contact:hover,
+    .contact:active { color: var(--cyan); transform: translateX(-2px); }
     .contact .icon {
-      width: 26px;
-      height: 26px;
+      width: 32px;
+      height: 32px;
       flex: 0 0 auto;
       display: grid;
       place-items: center;
@@ -365,11 +468,10 @@
     }
 
     .actions {
-      width: min(94vw, 760px);
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 9px;
+      width: var(--card-w);
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
       opacity: 0;
       animation: rise .8s ease .32s forwards;
     }
@@ -378,17 +480,24 @@
       border: 1px solid rgba(215,189,145,.3);
       background: rgba(26,22,18,.7);
       color: #ece5da;
-      padding: 11px 14px;
+      min-height: var(--touch);
+      padding: 12px 10px;
       border-radius: 999px;
-      font: 600 10px/1 "Outfit", sans-serif;
-      letter-spacing: .11em;
+      font: 600 10px/1.2 "Outfit", sans-serif;
+      letter-spacing: .08em;
       text-transform: uppercase;
       cursor: pointer;
       transition: transform .2s ease, border-color .2s ease, background .2s ease;
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
-    .action:hover { transform: translateY(-2px); border-color: rgba(215,189,145,.6); background: rgba(52,43,34,.85); }
-    .action.primary { border-color: rgba(142,238,255,.34); }
+    .action:hover,
+    .action:active { transform: translateY(-1px); border-color: rgba(215,189,145,.6); background: rgba(52,43,34,.85); }
+    .action:focus-visible { outline: 2px solid rgba(142,238,255,.55); outline-offset: 2px; }
+    .action.primary {
+      border-color: rgba(142,238,255,.34);
+      background: rgba(34, 48, 52, .82);
+    }
 
     .hint {
       margin: 0;
@@ -403,8 +512,10 @@
     .toast {
       position: fixed;
       left: 50%;
-      bottom: 22px;
+      bottom: calc(22px + var(--safe-bottom));
       transform: translate(-50%, 20px);
+      max-width: calc(100vw - 32px);
+      text-align: center;
       padding: 11px 15px;
       border: 1px solid rgba(215,189,145,.28);
       border-radius: 999px;
@@ -425,25 +536,124 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    @media (max-width: 900px) and (min-width: 741px) {
+      .actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .action.primary { grid-column: 1 / -1; }
+    }
+
     @media (max-width: 740px) {
-      .stage { justify-content: flex-start; padding-top: 24px; }
-      .topbar { align-items: flex-start; }
-      .availability { text-align: right; }
-      .card { aspect-ratio: auto; min-height: auto; }
-      .face { min-height: 640px; }
-      .back-layout { grid-template-columns: 1fr; }
-      .qr-panel { align-items: flex-start; }
-      .contact-list { margin-top: 26px; }
-      .contact { justify-content: flex-start; }
-      .front-bottom { align-items: flex-start; flex-direction: column; }
+      .stage {
+        justify-content: flex-start;
+        padding-top: calc(16px + var(--safe-top));
+        padding-bottom: calc(132px + var(--safe-bottom));
+      }
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .availability { text-align: left; }
+      .card {
+        aspect-ratio: auto;
+        min-height: 0;
+        height: auto;
+        transition: transform .88s cubic-bezier(.22,1,.36,1), height .32s ease;
+      }
+      .face {
+        position: absolute;
+        inset: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .front .grid {
+        height: auto;
+        min-height: 0;
+        justify-content: flex-start;
+      }
+      .front-body {
+        margin-top: 22px;
+        padding-top: 0;
+      }
+      .front::before {
+        right: -4px;
+        bottom: 12px;
+        font-size: clamp(96px, 24vw, 132px);
+      }
+      .back-layout {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+      .back-left { gap: 22px; }
+      .headline { margin-top: 18px; }
+      .service-grid { margin-top: 18px; }
+      .tagline { margin-top: 22px; }
+      .back-right {
+        gap: 24px;
+        padding-top: 4px;
+        border-top: 1px solid rgba(215,189,145,.16);
+      }
+      .qr-panel {
+        align-items: center;
+        width: 100%;
+      }
+      .qr { width: min(148px, 42vw); }
+      .contact-list {
+        margin-top: 0;
+        width: 100%;
+        gap: 2px;
+      }
+      .contact {
+        justify-content: space-between;
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(255,255,255,.03);
+        border: 1px solid rgba(215,189,145,.12);
+      }
+      .contact + .contact { margin-top: 0; }
+      .contact:hover,
+      .contact:active {
+        background: rgba(142,238,255,.06);
+        transform: none;
+      }
+      .front-tags { margin-top: 16px; }
+      .front-footer { margin-top: 18px; padding-top: 14px; }
+      .actions {
+        position: fixed;
+        left: 50%;
+        bottom: calc(12px + var(--safe-bottom));
+        transform: translateX(-50%);
+        width: min(calc(100vw - 24px), 760px);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 10px;
+        border-radius: 22px;
+        border: 1px solid rgba(215,189,145,.22);
+        background: rgba(16, 14, 12, .88);
+        box-shadow: 0 18px 48px rgba(0,0,0,.42);
+        z-index: 10;
+        animation: none;
+        opacity: 1;
+      }
+      .action.primary { grid-column: 1 / -1; }
+      .hint { padding-bottom: 4px; }
+      .toast { bottom: calc(112px + var(--safe-bottom)); }
     }
 
     @media (max-width: 480px) {
-      .face { padding: 23px; border-radius: 21px; }
-      .name { font-size: 56px; }
-      .service-grid { grid-template-columns: 1fr; }
-      .actions { gap: 7px; }
-      .action { padding: 10px 12px; font-size: 9px; }
+      .face { padding: 22px 20px; border-radius: 20px; }
+      .face::after { inset: 9px; border-radius: 14px; }
+      .name { font-size: clamp(42px, 14vw, 56px); }
+      .company { font-size: 19px; }
+      .headline { font-size: clamp(26px, 7.2vw, 34px); }
+      .service-grid { grid-template-columns: 1fr; gap: 10px; }
+      .eyebrow, .availability { font-size: 9px; letter-spacing: .22em; }
+      .actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .action { font-size: 9px; letter-spacing: .07em; padding: 12px 8px; }
+    }
+
+    @media (max-width: 360px) {
+      .actions { grid-template-columns: 1fr; }
+      .action.primary { grid-column: auto; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -472,6 +682,7 @@
     <div class="tilt-wrap" id="tiltWrap">
       <div class="card" id="card" tabindex="0" role="button" aria-label="Digital visiting card for Adil Rana. Activate to turn the card over.">
         <section class="face front" id="frontFace" aria-hidden="false">
+          <div class="front-accent" aria-hidden="true"></div>
           <div class="grid">
             <div class="row">
               <p class="brand">Rana Tech</p>
@@ -479,15 +690,22 @@
             </div>
 
             <div class="front-body">
+              <p class="front-label">Founder &amp; CEO</p>
               <h1 class="name">Adil <em>Rana</em></h1>
-              <div class="rule"></div>
-              <p class="role">Founder &amp; CEO</p>
               <p class="company">Software · AI · Innovation</p>
+              <div class="front-tags" aria-label="Core services">
+                <span class="front-tag">Custom Software</span>
+                <span class="front-tag">AI Solutions</span>
+                <span class="front-tag">SaaS Products</span>
+              </div>
             </div>
 
-            <div class="front-bottom">
-              <p class="promise">Building modern digital products, intelligent automation and scalable software for ambitious businesses.</p>
-              <div class="ai-badge">AI powered solutions</div>
+            <div class="front-footer">
+              <div class="front-contact">
+                <a class="front-link front-link--phone" href="tel:+919560130664">+91 9560130664</a>
+                <a class="front-link front-link--email" href="mailto:adilrana2014@gmail.com">adilrana2014@gmail.com</a>
+              </div>
+              <a class="front-link front-link--site" href="https://adilrana03.in" target="_blank" rel="noopener">adilrana03.in</a>
             </div>
           </div>
         </section>
@@ -522,12 +740,8 @@
               </div>
 
               <div class="contact-list">
-                <a class="contact" href="tel:+919560130664"><span>+91 9560130664</span><span class="icon">☎</span></a>
                 <a class="contact" href="https://wa.me/919560130664" target="_blank" rel="noopener"><span>WhatsApp</span><span class="icon">W</span></a>
-                <a class="contact" href="mailto:adilrana2014@gmail.com"><span>adilrana2014@gmail.com</span><span class="icon">✉</span></a>
                 <a class="contact" href="https://adilrana03.in" target="_blank" rel="noopener"><span>adilrana03.in</span><span class="icon">↗</span></a>
-                <a class="contact" href="https://www.linkedin.com/in/adilrana03" target="_blank" rel="noopener"><span>linkedin.com/in/adilrana03</span><span class="icon">in</span></a>
-                <div class="contact"><span>New Delhi, India</span><span class="icon">⌖</span></div>
               </div>
             </div>
           </div>
@@ -540,10 +754,9 @@
       <button class="action" id="flipBtn" type="button">Flip Card</button>
       <button class="action" id="shareBtn" type="button">Share</button>
       <button class="action" id="copyBtn" type="button">Copy Details</button>
-      <button class="action" onclick="window.print()" type="button">Print</button>
     </div>
 
-    <p class="hint">Tap / click the card to turn it over</p>
+    <p class="hint" id="hint">Tap / click the card to turn it over</p>
   </main>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -558,7 +771,6 @@
       phone: "+919560130664",
       email: "adilrana2014@gmail.com",
       website: "https://adilrana03.in",
-      linkedin: "https://www.linkedin.com/in/adilrana03",
       city: "New Delhi",
       country: "India"
     };
@@ -570,7 +782,18 @@
     const shareBtn = document.getElementById("shareBtn");
     const copyBtn = document.getElementById("copyBtn");
     const toast = document.getElementById("toast");
-    const faces = [document.getElementById("frontFace"), document.getElementById("backFace")];
+    const hint = document.getElementById("hint");
+    const frontFace = document.getElementById("frontFace");
+    const backFace = document.getElementById("backFace");
+    const faces = [frontFace, backFace];
+    const mobileQuery = window.matchMedia("(max-width: 740px)");
+    const finePointer = window.matchMedia("(pointer: fine)");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let suppressCardClick = false;
 
     function showToast(message) {
       toast.textContent = message;
@@ -584,6 +807,7 @@
       faces[0].setAttribute("aria-hidden", String(flipped));
       faces[1].setAttribute("aria-hidden", String(!flipped));
       flipBtn.textContent = flipped ? "Show Front" : "Flip Card";
+      syncCardHeight();
     }
 
     function toggleFlip() {
@@ -591,7 +815,47 @@
       setFlipped(flipped);
     }
 
-    card.addEventListener("click", toggleFlip);
+    function shouldIgnoreFlip(target) {
+      return Boolean(target.closest("a, button, input, textarea, select, label"));
+    }
+
+    function measureFaceHeight(face) {
+      const clone = face.cloneNode(true);
+      clone.style.position = "static";
+      clone.style.visibility = "hidden";
+      clone.style.pointerEvents = "none";
+      clone.style.height = "auto";
+      clone.style.transform = "none";
+      clone.style.backfaceVisibility = "visible";
+      clone.style.overflow = "visible";
+      const wrap = document.createElement("div");
+      wrap.style.position = "absolute";
+      wrap.style.left = "-9999px";
+      wrap.style.top = "0";
+      wrap.style.width = `${card.offsetWidth || card.getBoundingClientRect().width}px`;
+      wrap.appendChild(clone);
+      document.body.appendChild(wrap);
+      const height = wrap.offsetHeight;
+      wrap.remove();
+      return height;
+    }
+
+    function syncCardHeight() {
+      if (!mobileQuery.matches) {
+        card.style.height = "";
+        card.style.minHeight = "";
+        return;
+      }
+      const activeFace = card.classList.contains("is-flipped") ? backFace : frontFace;
+      const height = Math.max(measureFaceHeight(activeFace), 520);
+      card.style.height = `${height}px`;
+      card.style.minHeight = `${height}px`;
+    }
+
+    card.addEventListener("click", (event) => {
+      if (suppressCardClick || shouldIgnoreFlip(event.target)) return;
+      toggleFlip();
+    });
     card.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
@@ -600,7 +864,31 @@
     });
     flipBtn.addEventListener("click", toggleFlip);
 
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && window.matchMedia("(pointer:fine)").matches) {
+    card.querySelectorAll("a.contact, a.front-link").forEach((link) => {
+      link.addEventListener("click", (event) => event.stopPropagation());
+    });
+
+    card.addEventListener("touchstart", (event) => {
+      if (!mobileQuery.matches || event.touches.length !== 1) return;
+      touchStartX = event.touches[0].clientX;
+      touchStartY = event.touches[0].clientY;
+      touchStartTime = Date.now();
+    }, { passive: true });
+
+    card.addEventListener("touchend", (event) => {
+      if (!mobileQuery.matches || shouldIgnoreFlip(event.target)) return;
+      const touch = event.changedTouches[0];
+      const deltaX = touch.clientX - touchStartX;
+      const deltaY = touch.clientY - touchStartY;
+      const elapsed = Date.now() - touchStartTime;
+      if (elapsed > 450) return;
+      if (Math.abs(deltaX) < 56 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+      suppressCardClick = true;
+      setTimeout(() => { suppressCardClick = false; }, 350);
+      setFlipped(deltaX < 0);
+    }, { passive: true });
+
+    if (!reduceMotion.matches && finePointer.matches) {
       tiltWrap.addEventListener("pointermove", (event) => {
         const rect = tiltWrap.getBoundingClientRect();
         const x = (event.clientX - rect.left) / rect.width - 0.5;
@@ -646,7 +934,6 @@
         profile.phone,
         profile.email,
         profile.website,
-        profile.linkedin,
         profile.city + ", " + profile.country
       ].join("\n");
       try {
@@ -674,6 +961,28 @@
         if (error && error.name !== "AbortError") showToast("Sharing was cancelled");
       }
     });
+
+    function updateHint() {
+      if (mobileQuery.matches) {
+        hint.textContent = "Tap the card or swipe left to see contact details";
+      } else {
+        hint.textContent = "Click the card to turn it over";
+      }
+    }
+
+    mobileQuery.addEventListener("change", () => {
+      updateHint();
+      syncCardHeight();
+    });
+    window.addEventListener("resize", syncCardHeight);
+    window.addEventListener("load", () => {
+      updateHint();
+      syncCardHeight();
+    });
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(syncCardHeight);
+    }
+
     // Embedded QR: the image is self-contained and encodes the Adil Rana vCard.
     const qrImage = document.getElementById("qrImage");
     qrImage.src = "data:image/png;base64,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";
